@@ -6,7 +6,7 @@ int sqrts(const int& n)
     u.i = 0x5F375A86 - (*(int*)&n >> 1);
     return (int(3) - n * u.f * u.f) * n * u.f * 0.5f;
 }
-vec2::vec2() : x(0.0f), y(0.0f) {}
+vec2::vec2() : x(0), y(0) {}
 
 vec2::vec2(int x, int y) {
     this->x = x;
