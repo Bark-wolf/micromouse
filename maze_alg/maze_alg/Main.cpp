@@ -24,22 +24,13 @@ struct vec2 {
         this->x = vec.x;
         this->y = vec.y;
     }
-
-
-
     vec2 operator+(vec2 v) {
         return vec2(x + v.x, y + v.y);
     }
-
-
-
     vec2 operator-(vec2 v) {
         return vec2(x - v.x, y - v.y);
     }
 };
-
-
-
 void log(const std::string& text) {
     std::cerr << text << std::endl;
 }
@@ -52,16 +43,11 @@ enum direction : unsigned char {
 int counter = 0;
 int maze_width = 16;
 int maze_height = 16;
-
-
-
 vec2 start(0, 0);
 vec2 current_pos(0, 0);
 std::vector<direction> all_dir = { north, east, south, west };
 std::vector<vec2> goal = { {8,8}, {7,8}, {8,7} , {7,7} };
 direction current_dir = north;
-
-
 
 direction get_left_dir(direction dir)
 {
@@ -155,21 +141,15 @@ std::string to_string(int a) {
     return str;
 }
 
-
-
 class cell {
 private:
     int distance; unsigned char walls; bool c; bool v;
-    //boolean array to a bitwise operations to improve efficiency
 public:
     cell() {
-        distance = 0;//default to max
-        walls = 0b0000;//default to no walls
+        distance = 0;
+        walls = 0b0000;
         c = false;
         v = false;
-
-
-
     }
     void set_c(bool f) {
         c = f;
@@ -224,13 +204,7 @@ public:
         return str;
     }
 };
-
-
-
 std::vector<std::vector<cell>> cell_map;
-
-
-
 void init_map(int width, int height) {
     cell_map.resize(height);
     for (auto& a : cell_map) {
@@ -244,7 +218,7 @@ void print_map() {
         }
     }
 }
-void ffm(const std::vector<vec2>goal, const vec2 start) {
+void flood_map(const std::vector<vec2>goal, const vec2 start) {
     std::queue<vec2> q;
     for (int row = 0; row < maze_height; row++) {
         for (int col = 0; col < maze_width; col++) {
@@ -268,8 +242,6 @@ void ffm(const std::vector<vec2>goal, const vec2 start) {
                 for (const direction& dir : all_dir) {
                     int nrow = row;
                     int ncol = col;
-
-
 
                     switch (dir) {
                     case north:
@@ -300,13 +272,9 @@ void ffm(const std::vector<vec2>goal, const vec2 start) {
 std::queue<direction> best_route() {
     std::queue<direction> q;
 
-
-
     int row = current_pos.y;
     int col = current_pos.x;
     int min_dist = cell_map[row][col].get_distance();
-
-
 
     while (min_dist > 0) {
         if (row > -1 && row < maze_height && col >-1 && col < maze_width) {
@@ -322,8 +290,6 @@ std::queue<direction> best_route() {
             else if (col < 15 && !cell_map[row][col + 1].exist_wall(west) && !cell_map[row][col].exist_wall(east)
                 && cell_map[row][col + 1].get_distance() < min_dist)
             {
-
-
 
                 min_dist = cell_map[row][col + 1].get_distance();
                 q.push(east);
@@ -350,8 +316,6 @@ std::queue<direction> best_route() {
     return q;
 }
 
-
-
 void update_pos(direction dir) {
     if (dir & north) {
         current_pos.y++;
@@ -371,20 +335,14 @@ void update_wall(vec2 pos) {
     bool left_wall = API::wallLeft();
     bool right_wall = API::wallRight();
 
-
-
     direction right_dir = get_right_dir(current_dir);
     direction left_dir = get_left_dir(current_dir);
-
-
 
     int y = pos.y;
     int x = pos.x;
     vec2 front = dir_to_vec(current_dir);
     vec2 right = dir_to_vec(right_dir);
     vec2 left = dir_to_vec(left_dir);
-
-
 
     if (front_wall) {
         cell_map[y][x].add_walls(current_dir);
@@ -407,8 +365,6 @@ void update_wall(vec2 pos) {
         }
         API::setWall(x, y, dir_to_char(right_dir));
     }
-
-
 
 }
 void update_movement(direction temp) {
@@ -438,15 +394,13 @@ void update_movement(direction temp) {
     }
 }
 
-
-
 int main(int argc, char* argv[]) {
     init_map(maze_width, maze_height);
-    ffm(goal, start);
+    flood_map(goal, start);
     std::queue<direction> instructions = best_route();
     while (!instructions.empty()) {
         update_wall(current_pos);
-        ffm(goal, start);
+        flood_map(goal, start);
         print_map();
         instructions = best_route();
         direction temp = instructions.front();
@@ -454,16 +408,13 @@ int main(int argc, char* argv[]) {
         update_movement(temp);
         instructions.pop();
     }
-
-
-
     start = current_pos;
     std::vector<vec2> goal_2 = { vec2(0,0) };
-    ffm(goal_2, start);
+    flood_map(goal_2, start);
     instructions = best_route();
     while (!instructions.empty()) {
         update_wall(current_pos);
-        ffm(goal_2, start);
+        flood_map(goal_2, start);
         print_map();
         instructions = best_route();
         direction temp = instructions.front();
@@ -471,7 +422,47 @@ int main(int argc, char* argv[]) {
         update_movement(temp);
         instructions.pop();
     }
-    ffm(goal, current_pos);
+    start = vec2(0, 0);
+    flood_map(goal, start);
+    instructions = best_route();
     print_map();
+    while (!instructions.empty()) {
+        update_wall(current_pos);
+        flood_map(goal, start);
+        print_map();
+        instructions = best_route();
+        direction temp = instructions.front();
+        update_pos(temp);
+        update_movement(temp);
+        instructions.pop();
+    }
+    start = current_pos;
+    goal_2 = { vec2(0,0) };
+    flood_map(goal_2, start);
+    instructions = best_route();
+    while (!instructions.empty()) {
+        update_wall(current_pos);
+        flood_map(goal_2, start);
+        print_map();
+        instructions = best_route();
+        direction temp = instructions.front();
+        update_pos(temp);
+        update_movement(temp);
+        instructions.pop();
+    }
+    start = vec2(0, 0);
+    flood_map(goal, start);
+    instructions = best_route();
+    print_map();
+    while (!instructions.empty()) {
+        update_wall(current_pos);
+        flood_map(goal, start);
+        print_map();
+        instructions = best_route();
+        direction temp = instructions.front();
+        update_pos(temp);
+        update_movement(temp);
+        instructions.pop();
+    }
     return 0;
 }
